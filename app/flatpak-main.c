@@ -411,7 +411,15 @@ flatpak_option_context_parse (GOptionContext     *context,
                   if (opt_system && g_strcmp0 (opt_installations[i], "default") == 0)
                     continue;
 
-                  installation_dir = flatpak_dir_get_system_by_id (opt_installations[i], cancellable, error);
+                  if (g_strrstr (opt_installations[i], "/") != NULL)
+                    {
+                      g_autoptr(GFile) file = g_file_new_for_path (opt_installations[i]);
+                      installation_dir = flatpak_dir_get_by_path (file);
+                    }
+                  else
+                    {
+                      installation_dir = flatpak_dir_get_system_by_id (opt_installations[i], cancellable, error);
+                    }
                   if (installation_dir == NULL)
                     return FALSE;
 
@@ -459,7 +467,16 @@ flatpak_option_context_parse (GOptionContext     *context,
             dir = flatpak_dir_get_user ();
           else if (opt_installations != NULL)
             {
-              dir = flatpak_dir_get_system_by_id (opt_installations[0], cancellable, error);
+              if (g_strrstr (opt_installations[0], "/") != NULL)
+                {
+                  g_autoptr(GFile) file = g_file_new_for_path (opt_installations[0]);
+                  dir = flatpak_dir_get_by_path (file);
+                }
+              else
+                {
+                  dir = flatpak_dir_get_system_by_id (opt_installations[0], cancellable, error);
+                }
+
               if (dir == NULL)
                 return FALSE;
             }
